@@ -28,4 +28,6 @@ try {
 // merge the two config files together
 // the envConfig file will overwrite properties
 // on the config object
+console.log(config);
+console.log(envConfig);
 module.exports = _.merge(config, envConfig);
