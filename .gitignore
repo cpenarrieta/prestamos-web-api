@@ -1,0 +1,6 @@
+node_modules
+*.log
+DS_Store
+
+# Ignore dotenv config file
+.env

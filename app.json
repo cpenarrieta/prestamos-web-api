@@ -1,0 +1,29 @@
+{
+  "name": "prestamos-web-api",
+  "scripts": {
+  },
+  "env": {
+    "JWT": {
+      "required": true
+    },
+    "NODE_ENV": {
+      "required": true
+    },
+    "CLIENT_URL": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "mongolab"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
