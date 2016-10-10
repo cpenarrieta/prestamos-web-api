@@ -6,6 +6,8 @@ const logger = require('./util/logger');
 const auth = require('./auth/routes');
 const mongoose = require('mongoose');
 
+app.disable('x-powered-by');
+
 mongoose.Promise = require('bluebird');
 mongoose.connect(config.db.url);
 
