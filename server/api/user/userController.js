@@ -9,7 +9,7 @@ exports.params = (req, res, next, id) => {
       if (!user) {
         next(new Error('No user with that id'));
       } else {
-        req.user = user;
+        req.user = user; // eslint-disable-line
         next();
       }
     })
@@ -31,13 +31,13 @@ exports.get = (req, res, next) => {
     });
 };
 
-exports.getOne = (req, res, next) => {
+exports.getOne = (req, res) => {
   res.json(req.user);
 };
 
 exports.put = (req, res, next) => {
-  var user = req.user;
-  var update = req.body;
+  const user = req.user;
+  const update = req.body;
   _.merge(user, update);
 
   user.save()
@@ -50,14 +50,12 @@ exports.put = (req, res, next) => {
 };
 
 exports.post = (req, res, next) => {
-  var newUser = new User(req.body);
+  const newUser = new User(req.body);
 
   newUser.save()
     .then((user) => {
-      const token = signToken(user._id);
-      res.json({
-        token: token
-      });
+      const token = signToken(user.id);
+      res.json({ token });
     })
     .catch((err) => {
       next(err);
@@ -75,5 +73,5 @@ exports.delete = (req, res, next) => {
 };
 
 exports.me = (req, res) => {
-  res.json(req.user);
+  res.json(req.authUser);
 };

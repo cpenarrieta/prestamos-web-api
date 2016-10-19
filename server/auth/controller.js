@@ -1,13 +1,12 @@
-const User = require('../api/user/userModel');
 const signToken = require('./auth').signToken;
 
-exports.signin = (req, res, next) => {
-  // req.user will be there from the middleware
+exports.signin = (req, res) => {
+  // req.authUser will be there from the middleware
   // verify user. Then we can just create a token
   // and send it back for the client to consume
-  var token = signToken(req.user._id);
+  const token = signToken(req.authUser.id);
   res.json({
-    user: req.user,
-    token
+    user: req.authUser,
+    token,
   });
 };

@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('express').Router(); // eslint-disable-line
 const verifyUser = require('./auth').verifyUser;
 const controller = require('./controller');
 

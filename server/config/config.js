@@ -5,25 +5,19 @@ const config = {
   test: 'testing',
   prod: 'production',
   port: process.env.PORT || 8080,
-  expireTime: "30d", // 30 days
+  expireTime: '60 days',
   secrets: {
-    jwt: process.env.JWT || 'super secret key'
+    jwt: process.env.JWT || 'super secret key',
   },
   db: {
-    url: process.env.MONGODB_URI || 'mongodb://localhost/prestamos-web'
-  }
+    url: process.env.MONGODB_URI || 'mongodb://localhost/prestamos-web',
+  },
 };
 
 process.env.NODE_ENV = process.env.NODE_ENV || config.dev;
 config.env = process.env.NODE_ENV;
 
-var envConfig;
-try {
-  envConfig = require('./' + config.env);
-  envConfig = envConfig || {};
-} catch(e) {
-  envConfig = {};
-}
+const envConfig = require(`./${config.env}`) || {};
 
 // merge the two config files together
 // the envConfig file will overwrite properties
