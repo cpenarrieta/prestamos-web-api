@@ -1,51 +1,81 @@
-const moment = require('moment');
+const _ = require('lodash');
+const crypto = require('crypto');
 const quoteCalculator = require('./quoteCalculator').calculate;
+const Bank = require('../bank/bankModel');
+const config = require('../../config/config');
 
-function getDetails() {
-  let total = 50000;
-  const details = [];
-  let prev = moment().add(1, 'months');
-  for (let i = 1; i <= 50; i += 1) {
-    details.push({
-      fecha: prev.format('D/MM/YYYY'),
-      numCuota: i,
-      intereses: 605.39,
-      amortizacion: 203.34,
-      cuota: 1234.23,
-      saldo: total,
-    });
-    total -= 203.34;
-    prev = prev.add(1, 'months');
+function getAmount(amountSelected, maxAmount) {
+  if (amountSelected <= maxAmount) {
+    return amountSelected;
   }
-
-  return details;
+  return maxAmount;
 }
 
-const testQuote = [{
-  bank: 'scotiabank',
-  quote: 1250,
-  rate: 0.16,
-  currency: 'S/.',
-  details: getDetails(),
-}, {
-  bank: 'bbva',
-  quote: 1320,
-  rate: 0.17,
-  currency: 'S/.',
-  details: getDetails(),
-}, {
-  bank: 'interbank',
-  quote: 1120,
-  rate: 0.14,
-  currency: 'S/.',
-  details: getDetails(),
-}];
+function getUserRate(rates, amount, segmentation, currency) {
+  const rate = _(rates)
+    .filter({ segmentation })
+    .find((s) => {
+      return (amount > s.min && amount <= s.max);
+    });
+
+  if (currency === 'S/.') {
+    return rate.solesRate;
+  }
+  return rate.dollarRate;
+}
 
 exports.post = (req, res) => {
-  const result = quoteCalculator({ rate: 0.15, amount: 50000, timeInMonths: 60 });
-  res.json(testQuote);
+  const { currency, amountSelected, term, doubleQuotes } = req.body;
+
+  const result = _.map(req.authUser.bankRates, (bankRate) => {
+    const amount = getAmount(amountSelected, currency === 'S/.' ? bankRate.solesMaxAmount : bankRate.dollarMaxAmount);
+    const rate = getUserRate(bankRate.bank.rates, amountSelected, bankRate.segmentation, currency);
+    const { quote, details } = quoteCalculator({ rate, amount, term });
+
+    return {
+      bankId: bankRate.bank.id,
+      bank: _.lowerCase(bankRate.bank.name),
+      currency,
+      amount,
+      quote,
+      details,
+      rate,
+      term,
+      differentAmount: amount !== amountSelected,
+    };
+  });
+
+  res.json(result);
 };
 
-exports.finishQuote = (req, res) => {
-  res.json({ confirmationNumber: 'ABC1234' });
+function generateQuoteCode(request) {
+  const key = crypto.pbkdf2Sync(JSON.stringify(request), config.secrets.salt, 100000, 3, 'sha512');
+  return key.toString('hex').toUpperCase();
+}
+
+exports.finishQuote = (req, res, next) => {
+  const { bankId, quote, rate, amount, currency, term } = req.body.quote;
+  const code = generateQuoteCode({ user: req.authUser, bankId, quote, rate, amount, currency, term, date: new Date() });
+
+  Bank
+    .findById(bankId)
+    .exec()
+    .then((bank) => {
+      bank.quotes.push({
+        user: req.authUser,
+        totalAmount: amount,
+        monthlyFee: quote,
+        code,
+        currency,
+        rate,
+        term,
+      });
+      return bank.save();
+    })
+    .then((bank) => {
+      res.json({ code, amount, currency, rate, quote, term, bankName: bank.name });
+    })
+    .catch((err) => {
+      next(err);
+    });
 };

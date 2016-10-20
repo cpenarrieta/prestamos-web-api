@@ -7,6 +7,8 @@ const BankSchema = new Schema({
   name: { type: String, required: true, unique: true },
   username: String,
   password: String,
+  defaultSolesMaxAmount: Number,
+  defaultDollarMaxAmount: Number,
   rates: [{
     segmentation: String,
     max: Number,
@@ -20,6 +22,8 @@ const BankSchema = new Schema({
     totalAmount: Number,
     currency: String,
     monthlyFee: Number,
+    rate: Number,
+    term: Number,
     createdAt: { type: Date, default: Date.now },
   }],
   loans: [{
@@ -28,6 +32,8 @@ const BankSchema = new Schema({
     totalAmount: Number,
     currency: String,
     monthlyFee: Number,
+    rate: Number,
+    term: Number,
     status: String,
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },

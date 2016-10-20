@@ -8,6 +8,7 @@ const config = {
   expireTime: '60 days',
   secrets: {
     jwt: process.env.JWT || 'super secret key',
+    salt: process.env.SALT || 'salt',
   },
   db: {
     url: process.env.MONGODB_URI || 'mongodb://localhost/prestamos-web',
@@ -17,7 +18,7 @@ const config = {
 process.env.NODE_ENV = process.env.NODE_ENV || config.dev;
 config.env = process.env.NODE_ENV;
 
-const envConfig = require(`./${config.env}`) || {};
+const envConfig = require(`./${config.env}`) || {}; // eslint-disable-line
 
 // merge the two config files together
 // the envConfig file will overwrite properties
